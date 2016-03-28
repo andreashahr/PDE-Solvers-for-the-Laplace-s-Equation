@@ -17,12 +17,12 @@
 	 */
 	
 	int gridSize, numIters, i, j, k;
-	
+	float temp, maxdiff;
 	/*Andreas! I interpret the grid size as the length of the side.
 	  Otherwise we have to take the sqrt of it to get the sides when
 	  malloc'ing, change it if you see it fitting. :) */
 	gridSize = (argc > 1)? atoi(argv[1]) + 2 : GRIDSIZE;
-	numIters = (argc > 2)? atoi(argv[2]) * 0.5 : NUMITERS;
+	numIters = (argc > 2)? atoi(argv[2]) : NUMITERS;
 	
 	printf("gridSize: %d\n", gridSize);
 	printf("numIters: %d\n", numIters);
@@ -79,6 +79,20 @@
 			}
 		}
 	}
+	/*computes maximum difference*/
+	maxdiff = 0;
+	for(i = 1; i < gridSize-1; i++){
+		for(j = 1; j < gridSize-1; j++){
+			temp = grid[i][j] - new[i][j];
+			if(temp < 0)
+				temp = -temp;
+			if(temp > maxdiff)
+				maxdiff = temp;
+		}
+	}
+	/*print the maximum difference*/
+	printf("Maximum difference: %f\n", maxdiff);
+	
 	/*Prints the grid with boundary*/
 	for(i = 0; i < gridSize; i++){
 			printf("\n");
