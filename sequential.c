@@ -1,6 +1,6 @@
 /*
 	Author Kardå Chalak & Andreas Hahr
-	{kardac, "andreas adress"}@kth.se
+	{kardac, hahr}@kth.se
 	
 	A sequential Jacobi iteration program
 */
@@ -17,10 +17,8 @@
 	 */
 	
 	int gridSize, numIters, i, j, k;
-	float temp, maxdiff;
-	/*Andreas! I interpret the grid size as the length of the side.
-	  Otherwise we have to take the sqrt of it to get the sides when
-	  malloc'ing, change it if you see it fitting. :) */
+	double temp, maxdiff;
+	
 	gridSize = (argc > 1)? atoi(argv[1]) + 2 : GRIDSIZE;
 	numIters = (argc > 2)? atoi(argv[2]) : NUMITERS;
 	
@@ -28,58 +26,55 @@
 	printf("numIters: %d\n", numIters);
 	
 	/*malloc the columns*/
-	float **grid = (float **) malloc(gridSize * sizeof(float*));
-	float **new = (float **) malloc(gridSize * sizeof(float*));
+	double **grid = (double **) malloc(gridSize * sizeof(double*));
+	double **new = (double **) malloc(gridSize * sizeof(double*));
 	/*malloc the rows*/
 	for(i = 0; i < gridSize; i++){
-		grid[i] = (float *) malloc(gridSize * sizeof(float));
-		new[i] = (float *) malloc(gridSize * sizeof(float));
+		grid[i] = (double *) malloc(gridSize * sizeof(double));
+		new[i] = (double *) malloc(gridSize * sizeof(double));
 	}
+	
 	/*Initiation of grid boundary */
-	/*Hörnen initieras 2 gånger. Går säkert att göra bättre men just nu känns det
-	  inte värt*/
 	for(i = 0; i < gridSize; i++){
 		grid[0][i] = 1;				// upper boundary
-		new[0][i] =1;
+		new[0][i] = 1;
 		grid[gridSize-1][i] = 1;	// lower boundary
 		new[gridSize-1][i] = 1;
 		grid[i][0] = 1; 			// left  boundary
 		new[i][0] = 1;
-		grid[i][gridSize-1] =1;		// right boundary
+		grid[i][gridSize-1] = 1;	// right boundary
 		new[i][gridSize-1] = 1;
 	}
+	
 	/*Instantiation of grids */
 	for(i = 1; i < gridSize-1; i++){
 		for(j = 1; j < gridSize-1; j++){
 			grid[i][j] = 0;
-			//new[i][j] = 0; // behövs nog inte
 		}	
 	}
 	
 	/*Jacobi iterations*/
-	/*Körde * 0.625 på andra iterationen istället för 2st * 0.25
-	  fick annat resultat, måste gjort fel, låter vara såhär så länge*/
-	for(k = 0; k < numIters; k++){
+	for(k = 0; k < numIters; k++) {
 	
-		for(i = 1; i < gridSize-1; i++){
-			for(j = 1; j < gridSize-1; j++){
+		for(i = 1; i < gridSize-1; i++) {
+			for(j = 1; j < gridSize-1; j++) {
 				new[i][j] = (grid[i-1][j] +
 							 grid[i+1][j] +
 							 grid[i][j-1] +
-							 grid[i][j+1])* 0.25 ;
-			}	
+							 grid[i][j+1]) * 0.25;
+			}
 		}
-		
-		for(i = 1; i < gridSize-1; i++){
-			for(j = 1; j < gridSize-1; j++){
+		for(i = 1; i < gridSize-1; i++) {
+			for(j = 1; j < gridSize-1; j++) {
 				grid[i][j] = (new[i-1][j] +
 							  new[i+1][j] +
 							  new[i][j-1] +
-							  new[i][j+1])* 0.25;
+							  new[i][j+1]) * 0.25;
 			}
 		}
 	}
-	/*computes maximum difference*/
+	
+	/*computation of the maximum difference*/
 	maxdiff = 0;
 	for(i = 1; i < gridSize-1; i++){
 		for(j = 1; j < gridSize-1; j++){
@@ -101,4 +96,5 @@
 		}	
 	}
 	printf("\n");
+	exit(0);
 }
