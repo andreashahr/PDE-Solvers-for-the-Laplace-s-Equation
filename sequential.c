@@ -53,6 +53,7 @@
 		}	
 	}
 	
+	/*Vi bör eventuellt använda shift istället för * 0.25*/
 	/*Jacobi iterations*/
 	for(k = 0; k < numIters; k++) {
 	
