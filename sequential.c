@@ -1,6 +1,7 @@
 /*
-	Author Kardå Chalak
+	Author Kardå Chalak & Andreas Hahr
 	kardac@kth.se
+	andreas epost
 	
 	A sequential Jacobi iteration program
 */
