@@ -1,6 +1,6 @@
 /*
-	Author Kardå Chalak & Andreas Hahr
-	{kardac, hahr}@kth.se
+	Author Kardå Chalak
+	kardac@kth.se
 	
 	A sequential Jacobi iteration program
 */
@@ -93,8 +93,12 @@
 			printf("\n");
 		for(j = 0; j < gridSize; j++){
 			printf("%f  ", grid[i][j]);
-		}	
+		}
 	}
+	/*Behöver vi kanske köra free på vartenda element eller duger detta tror du?*/
+	free(grid);
+	free(new);
+	
 	printf("\n");
 	exit(0);
 }
