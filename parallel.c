@@ -5,7 +5,21 @@
 	
 	A parallel Jacobi iteration program using shared variables.
 	Adapted for hardware with shared memory.
+	
+	Input: gridSize, numIters, numProc
+	
+	At the moment the program assumes that the number of rows is evenly
+	divided by the number of processors. Gives slower performance when not true.
+	Should be fixed!
 */
+
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+ #include <omp.h>
+ 
+ #define GRIDSIZE 10
+ #define NUMITERS 10
 
 int main(int argc, char *argv[]){
 
@@ -13,11 +27,17 @@ int main(int argc, char *argv[]){
 	  numIters, the number of iterations to use
 	*/
 	
-	int gridSize, numIters, i, j, k;
+	int gridSize, numIters, numProc, workLoad, i, j, k;
 	double temp, maxdiff;
 	
 	gridSize = (argc > 1)? atoi(argv[1]) + 2 : GRIDSIZE;
 	numIters = (argc > 2)? atoi(argv[2]) : NUMITERS;
+	
+	/* sets threads*/
+	int maxthreads = omp_get_max_threads();
+	numProc = (argc > 2)? atoi(argv[2]) : maxthreads;
+	if (numProc > maxthreads) numProc = maxthreads;
+	if (numProc > gridSize) numProc = gridSize;
 	
 	printf("gridSize: %d\n", gridSize);
 	printf("numIters: %d\n", numIters);
