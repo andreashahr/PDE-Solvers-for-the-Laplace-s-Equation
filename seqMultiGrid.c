@@ -254,6 +254,16 @@ trivial to cover the same spatial space with a courser grid.
 	
 	restriction(gridH, grid2H, gridSizeH, gridSize2H);
 	
+	jacobi(grid2H, new2H, gridSize2H, FINERITER);
+	
+	restriction(grid2H, grid4H, gridSize2H, gridSize4H);
+	
+	jacobi(grid4H, new4H, gridSize4H, FINERITER);
+	
+	restriction(grid4H, grid8H, gridSize4H, gridSize8H);
+	
+	jacobi(grid8H, new8H, gridSize8H, numIters);
+	
 	
 	
 	/*test with output*/
@@ -328,17 +338,6 @@ trivial to cover the same spatial space with a courser grid.
  /*
 	Restriction operator uses the following transformation matrices:
 	(B stands for boundary value and its corresponding value is 0)
-	 
-	
-	For every other coarse point:
-	
-	0		1/8		0
-	
-	1/8		1/2		1/8
-	
-	0		1/8		0
-	
-	
 	
  */
  void restriction(double** fine, double** coarse, int fineSize, int coarseSize){
@@ -464,11 +463,43 @@ trivial to cover the same spatial space with a courser grid.
 								   
 		/* upper side points */
 		
+		coarse[1][i] = (fine[1][j-1] +
+						fine[1][j] +
+						fine[1][j+1] +
+						fine[2][j] ) * 0.25;
+		
 		/*down side points*/
+		
+		coarse[coarseSize-2][i] = (fine[fineSize-2][j-1] +
+								   fine[fineSize-2][j] +
+								   fine[fineSize-2][j+1] +
+								   fine[fineSize-3][j] ) * 0.25;
 	}
+	/*
 	
-		/*every other points*/
+	For every other coarse point:
 	
+	0		1/8		0
 	
+	1/8		1/2		1/8
+	
+	0		1/8		0
+	
+	*/
+	
+	int m, n;
+	
+	for(i = 2; i < coarseSize -2; i++){
+		m = i * 2 - 1;
+		
+		for(j = 2; j < coarseSize -2; j++){
+			n = j * 2 - 1;
+			coarse[i][j] = fine[m][n] * 0.5 +
+						   (fine[m-1][n] +
+						    fine[m][n-1] +
+							fine[m][n+1] +
+							fine[m+1][n]) * 0.125;
+		}
+	}
 	
  }
