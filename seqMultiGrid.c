@@ -98,6 +98,10 @@ B  0  *  0  *  0  B    					   B  *     *     *  B
 We can see that we need different restriction and interpolation operators for even and uneven
 grids. When the grid size is even the on step down courser grid is computed by gridsize/2 +1.
 When the grid is uneven it is computed by gridsize/2 + 2. 
+
+However when implementing the restriction operator method I have only taken the uneven case
+into consideration. This is improvable. The uneven case is choose as it is more
+trivial to cover the same spatial space with a courser grid. 
   
 	
 */
