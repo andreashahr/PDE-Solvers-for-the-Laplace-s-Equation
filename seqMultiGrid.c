@@ -106,6 +106,10 @@ When the grid is uneven it is computed by gridsize/2 + 2.
  
  #define GRIDSIZE 10
  #define NUMITERS 10
+ #define FINERITER 2
+ 
+ void jacobi(double** grid, double** new, int gridSize, int iter);
+ void restriction(double** fine, double** coarse, int fineSize, int coarseSize);
  
  int main(int argc, char *argv[]){
 	/*gridSize, the grid size for the finest grid, not including boundaries
@@ -151,7 +155,7 @@ When the grid is uneven it is computed by gridsize/2 + 2.
 	
 	/*Allocating memory for the grids*/
 	
-	/*malloc the columns*/
+	/*malloc the rows*/
 	double **gridH = (double **) malloc(gridSizeH * sizeof(double*));
 	double **newH = (double **) malloc(gridSizeH * sizeof(double*));
 	
@@ -165,7 +169,7 @@ When the grid is uneven it is computed by gridsize/2 + 2.
 	double **new8H = (double **) malloc(gridSize8H * sizeof(double*));
 	
 	
-	/*malloc the rows*/
+	/*malloc the columns*/
 	for(i = 0; i < gridSizeH; i++){
 		gridH[i] = (double *) malloc(gridSizeH * sizeof(double));
 		newH[i] = (double *) malloc(gridSizeH * sizeof(double));
@@ -238,28 +242,17 @@ When the grid is uneven it is computed by gridsize/2 + 2.
 		}	
 	}
 	
-	/*Instantiation of grid2H */
-	for(i = 1; i < gridSize2H-1; i++){
-		for(j = 1; j < gridSize2H-1; j++){
-			grid2H[i][j] = 0;
-		}	
-	}
+	/*Jacobi iterations on gridH
+	  FINERITER * 2 = number of iterations
+	*/
 	
-	/*Instantiation of grid4H */
-	for(i = 1; i < gridSize4H-1; i++){
-		for(j = 1; j < gridSize4H-1; j++){
-			grid4H[i][j] = 0;
-		}	
-	}
+	jacobi(gridH, newH, gridSizeH, FINERITER);
 	
-	/*Instantiation of grid8H */
-	for(i = 1; i < gridSize8H-1; i++){
-		for(j = 1; j < gridSize8H-1; j++){
-			grid8H[i][j] = 0;
-		}	
-	}
+	restriction(gridH, grid2H, gridSizeH, gridSize2H);
 	
-	/*test of multigrids instantiation */
+	
+	
+	/*test with output*/
 	
 	for(i = 0; i < gridSizeH; i++){
 		printf("\n");
@@ -302,5 +295,176 @@ When the grid is uneven it is computed by gridsize/2 + 2.
 	free(new4H);
 	free(new8H);
  }
+ 	/*Vi bör eventuellt använda shift istället för * 0.25*/
+ void jacobi(double** grid, double** new, int gridSize, int iter){
  
+	int i, j, k;
+	
+	for(k = 0; k < iter; k++) {
+	
+		for(i = 1; i < gridSize-1; i++) {
+			for(j = 1; j < gridSize-1; j++) {
+				new[i][j] = (grid[i-1][j] +
+							 grid[i+1][j] +
+							 grid[i][j-1] +
+							 grid[i][j+1]) * 0.25;
+			}
+		}
+		for(i = 1; i < gridSize-1; i++) {
+			for(j = 1; j < gridSize-1; j++) {
+				grid[i][j] = (new[i-1][j] +
+							  new[i+1][j] +
+							  new[i][j-1] +
+							  new[i][j+1]) * 0.25;
+			}
+		}
+	}
+ }
  
+ /*
+	Restriction operator uses the following transformation matrices:
+	(B stands for boundary value and its corresponding value is 0)
+	 
+	
+	For every other coarse point:
+	
+	0		1/8		0
+	
+	1/8		1/2		1/8
+	
+	0		1/8		0
+	
+	
+	
+ */
+ void restriction(double** fine, double** coarse, int fineSize, int coarseSize){
+ 
+	
+	/*Restricting the 4 corners*/
+	
+	/*
+	Uses restriction matrix:
+	
+	B		B		B
+	
+	B		1/2		1/4
+	
+	B		1/4		0
+	
+	*/
+	
+	coarse[1][1] = fine[1][1] * 0.5 + (fine[2][1] + fine[1][2]) * 0.25;
+
+	/*
+	Uses restriction matrix:
+	
+	B		B		B
+	
+	1/4		1/2		B
+	
+	0		1/4		B
+	
+	*/
+	
+	coarse[1][coarseSize-2] = fine[1][fineSize-2] * 0.5 + 
+							 (fine[1][fineSize-3] + fine[2][fineSize-2]) * 0.25;
+	
+							 
+	
+	/*
+	Uses restriction matrix
+	
+	B		1/4		0	
+	
+	B		1/2		1/4			
+	
+	B		B		B	
+	
+	*/
+	
+	coarse[coarseSize-2][1] = fine[fineSize-2][1] *0.5 + 
+							 (fine[fineSize-3][1] + fine[fineSize-2][2]) * 0.25;
+	
+	
+	
+	/*
+	Uses restriction matrix
+	
+	0		1/4		B
+	
+	1/4		1/2		B
+	
+	B		B		B
+	
+	*/
+	
+	
+	coarse[coarseSize-2][coarseSize-2] = fine[fineSize-2][fineSize-2] * 0.5 +
+										 (fine[fineSize-2][fineSize-3] + 
+										 fine[fineSize-3][fineSize-2]) * 0.25;
+	
+	int i, j;
+	
+	/*
+	
+	Restriction matrix for 
+	left side points:			    Right side points:
+	
+	
+	B		1/4			0			0		1/4		B			
+	
+	B		1/4			1/4			1/4		1/4		B			
+	
+	B		1/4			0			0		1/4		B			'
+	
+	
+	Restriction matrix for 
+	If a upper side point:		If a lower side point:
+	
+	
+	B		B		B			0		1/4		0
+	
+	1/4		1/4		1/4			1/4		1/4		1/4
+	
+	0		1/4		0			B		B		B
+	
+	*/
+	
+	/*	visar relationen mellan fine och coarse grained.
+		Har kvar så det blir lättare att förstå j. 
+		Du kan ta bort denna kommentar om du vill
+		[1][1] - [1][1]
+		[2][1] - [3][1] 
+		[3][1] - [5][1] 
+		[4][1] - [7][1] 
+		[5][1] - [9][1] 
+		[6][1] - [11][1]
+¨
+	*/
+	
+	for(i = 2; i < coarseSize - 2; i++){
+		j = i*2-1;	// translates from fine coordinates to coarse grained. 
+		
+		/*left side points*/
+		coarse[i][1] = (fine[j-1][1] + 
+					    fine[j][1] +
+					    fine[j+1][1] +
+						fine[j][2]) * 0.25;
+						
+		/*right side points*/
+						
+		coarse[i][coarseSize-2] = (fine[j-1][fineSize-2] +
+								   fine[j][fineSize-2] +
+								   fine[j+1][fineSize-2] +
+								   fine[j][fineSize-3]) * 0.25;
+								   
+		/* upper side points */
+		
+		/*down side points*/
+	}
+	
+		/*every other points*/
+	
+	
+	
+ }
