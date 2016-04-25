@@ -114,6 +114,10 @@ trivial to cover the same spatial space with a courser grid.
  
  void jacobi(double** grid, double** new, int gridSize, int iter);
  void restriction(double** fine, double** coarse, int fineSize, int coarseSize);
+ void interpolation(double** coarse, double** fine, int coarseSize, int fineSize);
+ 
+ void fullprint(double** gridH, double** grid2H, double** grid4H, double** grid8H,
+				int gridSizeH, int gridSize2H, int gridSize4H, int gridSize8H);
  
  int main(int argc, char *argv[]){
 	/*gridSize, the grid size for the finest grid, not including boundaries
@@ -264,41 +268,14 @@ trivial to cover the same spatial space with a courser grid.
 	
 	jacobi(grid8H, new8H, gridSize8H, numIters);
 	
-	
-	
 	/*test with output*/
+	fullprint(gridH, grid2H, grid4H, grid8H, 
+			  gridSizeH, gridSize2H, gridSize4H, gridSize8H);
+			  
+	interpolation(grid8H, grid4H, gridSize8H, gridSize4H);
 	
-	for(i = 0; i < gridSizeH; i++){
-		printf("\n");
-		for(j = 0; j < gridSizeH; j++){
-			printf("%f  ", gridH[i][j]);
-		}
-	}
-	printf("\n");
-	
-	for(i = 0; i < gridSize2H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize2H; j++){
-			printf("%f  ", grid2H[i][j]);
-		}
-	}
-	printf("\n");
-
-	for(i = 0; i < gridSize4H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize4H; j++){
-			printf("%f  ", grid4H[i][j]);
-		}
-	}
-	printf("\n");
-	
-	for(i = 0; i < gridSize8H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize8H; j++){
-			printf("%f  ", grid8H[i][j]);
-		}
-	}
-	printf("\n");
+	fullprint(gridH, grid2H, grid4H, grid8H, 
+			  gridSizeH, gridSize2H, gridSize4H, gridSize8H);
 	
 	free(gridH);
 	free(grid2H);
@@ -442,7 +419,6 @@ trivial to cover the same spatial space with a courser grid.
 		[4][1] - [7][1] 
 		[5][1] - [9][1] 
 		[6][1] - [11][1]
-¨
 	*/
 	
 	for(i = 2; i < coarseSize - 2; i++){
@@ -502,4 +478,74 @@ trivial to cover the same spatial space with a courser grid.
 		}
 	}
 	
+ }
+ 
+ void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
+	
+	/*Corner points has the interpolation matrix:
+	
+		0	0	0
+		
+		0	1	0
+		
+		0	0	0
+	*/
+	fine[1][1] = coarse[1][1];
+	fine[1][fineSize-2] = coarse[1][coarseSize-2];
+	fine[fineSize-2][fineSize-2] = coarse[coarseSize-2][coarseSize-2];
+	fine[fineSize-2][1] = coarse[coarseSize-2][1];
+	
+	/* The upper, lower, right and left sided points has the interpolation matrix
+	   Only showing the upper sided matrix here.
+		
+		B		B		B
+		
+		1/2 	1		1/2
+		
+		0		0		0
+		
+		
+		If its the same point it copies the value, otherwise it takes half 
+		the value of the two closest coarse points. 
+			
+	*/
+	
+ }
+ 
+ void fullprint(double** gridH, double** grid2H, double** grid4H, double** grid8H,
+				int gridSizeH, int gridSize2H, int gridSize4H, int gridSize8H){
+ 
+	int i, j;
+	
+	for(i = 0; i < gridSizeH; i++){
+		printf("\n");
+		for(j = 0; j < gridSizeH; j++){
+			printf("%f  ", gridH[i][j]);
+		}
+	}
+	printf("\n");
+	
+	for(i = 0; i < gridSize2H; i++){
+		printf("\n");
+		for(j = 0; j < gridSize2H; j++){
+			printf("%f  ", grid2H[i][j]);
+		}
+	}
+	printf("\n");
+
+	for(i = 0; i < gridSize4H; i++){
+		printf("\n");
+		for(j = 0; j < gridSize4H; j++){
+			printf("%f  ", grid4H[i][j]);
+		}
+	}
+	printf("\n");
+	
+	for(i = 0; i < gridSize8H; i++){
+		printf("\n");
+		for(j = 0; j < gridSize8H; j++){
+			printf("%f  ", grid8H[i][j]);
+		}
+	}
+	printf("\n");
  }
