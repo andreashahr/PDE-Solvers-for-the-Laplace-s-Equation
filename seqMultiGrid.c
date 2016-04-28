@@ -104,6 +104,8 @@ into consideration. This is improvable. The uneven case is choose as it is more
 trivial to cover the same spatial space with a courser grid. 
   
  Big risk for false sharing in cashe as the program uses a lot of matrix calculation
+ hur ställer du dig till detta andreas, är det en risk, bör vi försöka lösa det redan nu
+ eller först göra prestanda tester och se om det behövs?
 */
  #include <stdlib.h>
  #include <stdio.h>
