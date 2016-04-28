@@ -103,7 +103,7 @@ However when implementing the restriction operator method I have only taken the 
 into consideration. This is improvable. The uneven case is choose as it is more
 trivial to cover the same spatial space with a courser grid. 
   
-	
+ Big risk for false sharing in cashe as the program uses a lot of matrix calculation
 */
  #include <stdlib.h>
  #include <stdio.h>
@@ -116,8 +116,7 @@ trivial to cover the same spatial space with a courser grid.
  void restriction(double** fine, double** coarse, int fineSize, int coarseSize);
  void interpolation(double** coarse, double** fine, int coarseSize, int fineSize);
  
- void fullprint(double** gridH, double** grid2H, double** grid4H, double** grid8H,
-				int gridSizeH, int gridSize2H, int gridSize4H, int gridSize8H);
+ void gridprint(double** grid, int gridSize);
  
  int main(int argc, char *argv[]){
 	/*gridSize, the grid size for the finest grid, not including boundaries
@@ -254,28 +253,40 @@ trivial to cover the same spatial space with a courser grid.
 	  FINERITER * 2 = number of iterations
 	*/
 	
+	gridprint(gridH, gridSizeH);
 	jacobi(gridH, newH, gridSizeH, FINERITER);
+	gridprint(gridH, gridSizeH);
 	
 	restriction(gridH, grid2H, gridSizeH, gridSize2H);
-	
+	gridprint(grid2H, gridSize2H);
 	jacobi(grid2H, new2H, gridSize2H, FINERITER);
+	gridprint(grid2H, gridSize2H);
 	
 	restriction(grid2H, grid4H, gridSize2H, gridSize4H);
-	
+	gridprint(grid4H, gridSize4H);
 	jacobi(grid4H, new4H, gridSize4H, FINERITER);
+	gridprint(grid4H, gridSize4H);
 	
 	restriction(grid4H, grid8H, gridSize4H, gridSize8H);
-	
+	gridprint(grid8H, gridSize8H);
 	jacobi(grid8H, new8H, gridSize8H, numIters);
+	gridprint(grid8H, gridSize8H);
 	
-	/*test with output*/
-	fullprint(gridH, grid2H, grid4H, grid8H, 
-			  gridSizeH, gridSize2H, gridSize4H, gridSize8H);
-			  
 	interpolation(grid8H, grid4H, gridSize8H, gridSize4H);
+	gridprint(grid4H, gridSize4H);
+	jacobi(grid4H, new4H, gridSize4H, FINERITER);
+	gridprint(grid4H, gridSize4H);
 	
-	fullprint(gridH, grid2H, grid4H, grid8H, 
-			  gridSizeH, gridSize2H, gridSize4H, gridSize8H);
+	interpolation(grid4H, grid2H, gridSize4H, gridSize2H);
+	gridprint(grid2H, gridSize2H);
+	jacobi(grid2H, new2H, gridSize2H, FINERITER);
+	gridprint(grid2H, gridSize2H);
+	
+	interpolation(grid2H, gridH, gridSize2H, gridSizeH);
+	gridprint(gridH, gridSizeH);
+	jacobi(gridH, newH, gridSizeH, FINERITER);
+	gridprint(gridH, gridSizeH);
+	
 	
 	free(gridH);
 	free(grid2H);
@@ -480,7 +491,8 @@ trivial to cover the same spatial space with a courser grid.
 	
  }
  
- void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
+ // skit så jag gjorde en ny
+ /*void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
 	
 	/*Corner points has the interpolation matrix:
 	
@@ -489,7 +501,7 @@ trivial to cover the same spatial space with a courser grid.
 		0	1	0
 		
 		0	0	0
-	*/
+	*
 	fine[1][1] = coarse[1][1];
 	fine[1][fineSize-2] = coarse[1][coarseSize-2];
 	fine[fineSize-2][fineSize-2] = coarse[coarseSize-2][coarseSize-2];
@@ -508,43 +520,134 @@ trivial to cover the same spatial space with a courser grid.
 		If its the same point it copies the value, otherwise it takes half 
 		the value of the two closest coarse points. 
 			
+	*
+	
+	int i, j;
+	
+	// compensate uneven matrix (i = 2)
+	/*left side*
+	fine[2][1] = (coarse[1][1] + coarse[2][1]) * 0.5; 
+	/*down side*
+	fine[fineSize-2][2] = (coarse[coarseSize-2][1] + 
+						   coarse[coarseSize-2][2]) * 0.5; 
+	/*right side*
+	fine[2][fineSize-2] = (coarse[1][coarseSize-2] + 
+						   coarse[2][coarseSize-2]) * 0.5; 
+	/*top side*
+	fine[1][2] = (coarse[1][1] + coarse[1][2]) * 0.5;
+	
+	i =3;
+	while(i < fineSize-2){
+		j = i*0.5+1;	// translates from coarse coordinates to fine grained. 
+		/*Has an equivalent position in the coarser matrix*/
+		
+		/*left side*
+		fine[i][1] = coarse[j][1];
+		/*down side*
+		fine[fineSize-2][i] = coarse[coarseSize-2][j]; 
+		/*right side*
+		fine[i][fineSize-2] = coarse[j][coarseSize-2];
+		/*top side*
+		fine[1][i] = coarse[1][j];
+		
+		/*Does not have an equivalent position*
+		i++;
+		j = i * 0.5;
+		
+		/*left side*
+		fine[i][1] = (coarse[j][1] + coarse[j+1][1]) * 0.5; 
+		/*down side*
+		fine[fineSize-2][i] = (coarse[coarseSize-2][j] + 
+							   coarse[coarseSize-2][j+1]) * 0.5; 
+		/*right side*
+		fine[i][fineSize-2] = (coarse[j][coarseSize-2] + 
+							   coarse[j+1][coarseSize-2]) * 0.5; 
+		/*top side*
+		fine[1][i] = (coarse[1][j] + coarse[1][j+1]) * 0.5;
+		
+		i++;
+	}
+	
+	/*	Interpolation matrix for all other points:
+	
+	1/4		1/2		1/4
+	
+	1/2		1		1/2
+	
+	1/4		1/2		1/4
+		
+	
+	*
+	
+ }*/
+ 
+ void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
+ 
+	/*
+		Uses the interpolation matrix
+		
+		1/4		1/2		1/4
+		
+		1/2		1		1/2
+		
+		1/4		1/2		1/4
 	*/
 	
+	int i, j, n, m;
+	
+	// The centre part (the 1) of the interpolation matrix
+	for(i = 1; i < fineSize-1; i = i+2){
+		// adapting to the coarser matrix positions
+		n = i * 0.5 + 1;	
+		
+		for(j = 1; j < fineSize-1; j =j+2){
+			// adapting to the coarser matrix positions
+			m = j * 0.5 + 1;
+			
+			fine[i][j] = coarse[n][m];
+		}	
+	}
+	
+	/*The surrounding elements in the matrix */
+	
+	// row counter, handles two rows at a time
+	for(i = 1; i <fineSize-2; i = i + 2){
+	
+		//first calculation done here to even out the uneven matrix
+		
+		/* 1/2 of two corresponding coarse points*/
+		fine[i+1][1] = (fine[i][1] + fine[i+2][1]) * 0.5;
+		
+		for(j = 2; j < fineSize-1; j = j + 2){
+
+			// 1/2 of two corresponding coarse points
+			fine[i][j] = (fine[i][j-1] + fine[i][j+1]) * 0.5;
+			
+			//1/4 of four corresponding coarse points
+			fine[i+1][j] = (fine[i][j-1] + fine[i][j+1] +
+							fine[i+2][j-1] + fine[i+2][j+1]) * 0.25;
+			
+			// 1/2 of two corresponding coarse points
+			
+			fine[i+1][j+1] = (fine[i][j+1] + fine[i+2][j+1]) * 0.5;
+		}
+	}
+	
+	// the last row
+	for(j = 2; j < fineSize-2; j = j +2){
+		fine[fineSize-2][j] = (fine[fineSize-2][j-1] + 
+	   						   fine[fineSize-2][j+1]) * 0.5;
+		}
  }
  
- void fullprint(double** gridH, double** grid2H, double** grid4H, double** grid8H,
-				int gridSizeH, int gridSize2H, int gridSize4H, int gridSize8H){
+ void gridprint(double** grid, int gridSize){
  
 	int i, j;
 	
-	for(i = 0; i < gridSizeH; i++){
+	for(i = 0; i < gridSize; i++){
 		printf("\n");
-		for(j = 0; j < gridSizeH; j++){
-			printf("%f  ", gridH[i][j]);
-		}
-	}
-	printf("\n");
-	
-	for(i = 0; i < gridSize2H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize2H; j++){
-			printf("%f  ", grid2H[i][j]);
-		}
-	}
-	printf("\n");
-
-	for(i = 0; i < gridSize4H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize4H; j++){
-			printf("%f  ", grid4H[i][j]);
-		}
-	}
-	printf("\n");
-	
-	for(i = 0; i < gridSize8H; i++){
-		printf("\n");
-		for(j = 0; j < gridSize8H; j++){
-			printf("%f  ", grid8H[i][j]);
+		for(j = 0; j < gridSize; j++){
+			printf("%f  ", grid[i][j]);
 		}
 	}
 	printf("\n");
