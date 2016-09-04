@@ -128,6 +128,7 @@ trivial to cover the same spatial space with a courser grid.
 				the finer grids has 4 iterations each (specification from Prof. Dr. Vladimir Vlassov). 
 	*/
 	 
+	printf("First print\n"); 
 	int gridSizeH, gridSize2H, gridSize4H, gridSize8H, numIters, i, j, k;
 	double temp, maxdiff;
 	 
@@ -237,26 +238,35 @@ trivial to cover the same spatial space with a courser grid.
 	  FINERITER * 2 = number of iterations
 	*/
 	
+	printf("starting V iterations");
 	gridprint(gridH, gridSizeH);
 	jacobi(gridH, newH, gridSizeH, FINERITER);
 	gridprint(gridH, gridSizeH);
-	
+
+	printf("before first restriction");	
 	restriction(gridH, grid2H, gridSizeH, gridSize2H);
 	gridprint(grid2H, gridSize2H);
 	jacobi(grid2H, new2H, gridSize2H, FINERITER);
 	gridprint(grid2H, gridSize2H);
 	
+	printf("berfore secound restriciton\n");
 	restriction(grid2H, grid4H, gridSize2H, gridSize4H);
 	gridprint(grid4H, gridSize4H);
 	jacobi(grid4H, new4H, gridSize4H, FINERITER);
 	gridprint(grid4H, gridSize4H);
-	
+
+	printf("berfore thrird restriction\n");	
 	restriction(grid4H, grid8H, gridSize4H, gridSize8H);
+	printf("sista restriciton\n");
 	gridprint(grid8H, gridSize8H);
+	printf("innan jacobi\n");
 	jacobi(grid8H, new8H, gridSize8H, numIters);
+	printf("efter jacobi\n");
 	gridprint(grid8H, gridSize8H);
 	
+	printf("innan interpolation\n");
 	interpolation(grid8H, grid4H, gridSize8H, gridSize4H);
+	printf("interpolation lyckades \n");
 	gridprint(grid4H, gridSize4H);
 	jacobi(grid4H, new4H, gridSize4H, FINERITER);
 	gridprint(grid4H, gridSize4H);
@@ -288,16 +298,16 @@ trivial to cover the same spatial space with a courser grid.
 	
 	for(k = 0; k < iter; k++) {
 	
-		for(i = 1; i < gridSize-1; i++) {
-			for(j = 1; j < gridSize-1; j++) {
+		for(i = 1; i < gridSize+1; i++) {
+			for(j = 1; j < gridSize+1; j++) {
 				new[i][j] = (grid[i-1][j] +
 							 grid[i+1][j] +
 							 grid[i][j-1] +
 							 grid[i][j+1]) * 0.25;
 			}
 		}
-		for(i = 1; i < gridSize-1; i++) {
-			for(j = 1; j < gridSize-1; j++) {
+		for(i = 1; i < gridSize+1; i++) {
+			for(j = 1; j < gridSize+1; j++) {
 				grid[i][j] = (new[i-1][j] +
 							  new[i+1][j] +
 							  new[i][j-1] +
@@ -313,142 +323,9 @@ trivial to cover the same spatial space with a courser grid.
 	
  */
  void restriction(double** fine, double** coarse, int fineSize, int coarseSize){
- 
-	
-	/*Restricting the 4 corners*/
 	
 	/*
-	Uses restriction matrix:
-	
-	B		B		B
-	
-	B		1/2		1/4
-	
-	B		1/4		0
-	
-	*/
-	
-	coarse[1][1] = fine[1][1] * 0.5 + (fine[2][1] + fine[1][2]) * 0.25;
-
-	/*
-	Uses restriction matrix:
-	
-	B		B		B
-	
-	1/4		1/2		B
-	
-	0		1/4		B
-	
-	*/
-	
-	coarse[1][coarseSize-2] = fine[1][fineSize-2] * 0.5 + 
-							 (fine[1][fineSize-3] + fine[2][fineSize-2]) * 0.25;
-	
-							 
-	
-	/*
-	Uses restriction matrix
-	
-	B		1/4		0	
-	
-	B		1/2		1/4			
-	
-	B		B		B	
-	
-	*/
-	
-	coarse[coarseSize-2][1] = fine[fineSize-2][1] *0.5 + 
-							 (fine[fineSize-3][1] + fine[fineSize-2][2]) * 0.25;
-	
-	
-	
-	/*
-	Uses restriction matrix
-	
-	0		1/4		B
-	
-	1/4		1/2		B
-	
-	B		B		B
-	
-	*/
-	
-	
-	coarse[coarseSize-2][coarseSize-2] = fine[fineSize-2][fineSize-2] * 0.5 +
-										 (fine[fineSize-2][fineSize-3] + 
-										 fine[fineSize-3][fineSize-2]) * 0.25;
-	
-	int i, j;
-	
-	/*
-	
-	Restriction matrix for 
-	left side points:			    Right side points:
-	
-	
-	B		1/4			0			0		1/4		B			
-	
-	B		1/4			1/4			1/4		1/4		B			
-	
-	B		1/4			0			0		1/4		B			'
-	
-	
-	Restriction matrix for 
-	If a upper side point:		If a lower side point:
-	
-	
-	B		B		B			0		1/4		0
-	
-	1/4		1/4		1/4			1/4		1/4		1/4
-	
-	0		1/4		0			B		B		B
-	
-	*/
-	
-	/*	visar relationen mellan fine och coarse grained.
-		Har kvar så det blir lättare att förstå j. 
-		Du kan ta bort denna kommentar om du vill
-		[1][1] - [1][1]
-		[2][1] - [3][1] 
-		[3][1] - [5][1] 
-		[4][1] - [7][1] 
-		[5][1] - [9][1] 
-		[6][1] - [11][1]
-	*/
-	
-	for(i = 2; i < coarseSize - 2; i++){
-		j = i*2-1;	// translates from fine coordinates to coarse grained. 
-		
-		/*left side points*/
-		coarse[i][1] = (fine[j-1][1] + 
-					    fine[j][1] +
-					    fine[j+1][1] +
-						fine[j][2]) * 0.25;
-						
-		/*right side points*/
-						
-		coarse[i][coarseSize-2] = (fine[j-1][fineSize-2] +
-								   fine[j][fineSize-2] +
-								   fine[j+1][fineSize-2] +
-								   fine[j][fineSize-3]) * 0.25;
-								   
-		/* upper side points */
-		
-		coarse[1][i] = (fine[1][j-1] +
-						fine[1][j] +
-						fine[1][j+1] +
-						fine[2][j] ) * 0.25;
-		
-		/*down side points*/
-		
-		coarse[coarseSize-2][i] = (fine[fineSize-2][j-1] +
-								   fine[fineSize-2][j] +
-								   fine[fineSize-2][j+1] +
-								   fine[fineSize-3][j] ) * 0.25;
-	}
-	/*
-	
-	For every other coarse point:
+	Restriction matrix 
 	
 	0		1/8		0
 	
@@ -458,158 +335,57 @@ trivial to cover the same spatial space with a courser grid.
 	
 	*/
 	
-	int m, n;
+	int i, j, m, n;
 	
-	for(i = 2; i < coarseSize -2; i++){
-		m = i * 2 - 1;
+	for(i = 1; i < coarseSize+1; i++){
+		m = i * 2;
 		
-		for(j = 2; j < coarseSize -2; j++){
-			n = j * 2 - 1;
-			coarse[i][j] = fine[m][n] * 0.5 +
-						   (fine[m-1][n] +
-						    fine[m][n-1] +
-							fine[m][n+1] +
-							fine[m+1][n]) * 0.125;
+		for(j = 1; j < coarseSize+1; j++){
+			n = j * 2;
+			coarse[i][j] = fine[m][n] * 0.5 + (fine[m-1][n] + fine[m][n-1] + 
+				                         fine[m][n+1] + fine[m+1][n]) * 0.125;
 		}
 	}
 	
  }
- 
- // skit så jag gjorde en ny
- /*void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
-	
-	/*Corner points has the interpolation matrix:
-	
-		0	0	0
-		
-		0	1	0
-		
-		0	0	0
-	*
-	fine[1][1] = coarse[1][1];
-	fine[1][fineSize-2] = coarse[1][coarseSize-2];
-	fine[fineSize-2][fineSize-2] = coarse[coarseSize-2][coarseSize-2];
-	fine[fineSize-2][1] = coarse[coarseSize-2][1];
-	
-	/* The upper, lower, right and left sided points has the interpolation matrix
-	   Only showing the upper sided matrix here.
-		
-		B		B		B
-		
-		1/2 	1		1/2
-		
-		0		0		0
-		
-		
-		If its the same point it copies the value, otherwise it takes half 
-		the value of the two closest coarse points. 
-			
-	*
-	
-	int i, j;
-	
-	// compensate uneven matrix (i = 2)
-	/*left side*
-	fine[2][1] = (coarse[1][1] + coarse[2][1]) * 0.5; 
-	/*down side*
-	fine[fineSize-2][2] = (coarse[coarseSize-2][1] + 
-						   coarse[coarseSize-2][2]) * 0.5; 
-	/*right side*
-	fine[2][fineSize-2] = (coarse[1][coarseSize-2] + 
-						   coarse[2][coarseSize-2]) * 0.5; 
-	/*top side*
-	fine[1][2] = (coarse[1][1] + coarse[1][2]) * 0.5;
-	
-	i =3;
-	while(i < fineSize-2){
-		j = i*0.5+1;	// translates from coarse coordinates to fine grained. 
-		/*Has an equivalent position in the coarser matrix*/
-		
-		/*left side*
-		fine[i][1] = coarse[j][1];
-		/*down side*
-		fine[fineSize-2][i] = coarse[coarseSize-2][j]; 
-		/*right side*
-		fine[i][fineSize-2] = coarse[j][coarseSize-2];
-		/*top side*
-		fine[1][i] = coarse[1][j];
-		
-		/*Does not have an equivalent position*
-		i++;
-		j = i * 0.5;
-		
-		/*left side*
-		fine[i][1] = (coarse[j][1] + coarse[j+1][1]) * 0.5; 
-		/*down side*
-		fine[fineSize-2][i] = (coarse[coarseSize-2][j] + 
-							   coarse[coarseSize-2][j+1]) * 0.5; 
-		/*right side*
-		fine[i][fineSize-2] = (coarse[j][coarseSize-2] + 
-							   coarse[j+1][coarseSize-2]) * 0.5; 
-		/*top side*
-		fine[1][i] = (coarse[1][j] + coarse[1][j+1]) * 0.5;
-		
-		i++;
-	}
-	
-	/*	Interpolation matrix for all other points:
-	
-	1/4		1/2		1/4
-	
-	1/2		1		1/2
-	
-	1/4		1/2		1/4
-		
-	
-	*
-	
- }*/
- 
- void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
+void interpolation(double** coarse, double** fine, int coarseSize, int fineSize){
  
 	/*
 		Uses the interpolation matrix
 		
 		1/4		1/2		1/4
-		i
+		
 		1/2		1		1/2
 		
 		1/4		1/2		1/4
 	*/
 	
-	int i, j, n, m;
-	
+	int i, j, n, m;	
 	// The centre part (the 1) of the interpolation matrix
-	for(i = 1; i < coarseSize+2; i = i++){
+	for(i = 1; i < coarseSize+2; i++){
 		// adapting to the finer matrix positions
-		n = i * 2;	
+		m = i * 2;	
 		
-		for(j = 1; j < coarseSize+2; j =j+1){
+		for(j = 1; j < coarseSize+2; j++){
 			// adapting to the coarser matrix positions
-			m = j * 2;
+			n = j * 2;
 			
-			fine[n][m] = coarse[i][j];
+			fine[m][n] = coarse[i][j];
 		}	
 	}
-	
 	/*The surrounding elements in the matrix */
-	
 	// initiliazise columns that has coresponding coarse values
-	for(j = 2; j <fineSize+2; j = j + 2){
-		
-		for(i =1; i <fineSize+2; i = i+2){
+	for(j = 2; j <fineSize+2; j += 2){
+		for(i =1; i <fineSize+2; i += 2){
 			fine[i][j] = (fine[i-1][j] + fine[i+1][j]) * 0.5;
 		}
 	}
 	// initialize the rest of the columns
-	for(j =1; j<fineSize+2; j = j+2){
-		
-		for(i =1; i<fineSize+2; i++){
+	for(j =1; j<fineSize+2; j+=2){
+		for(i=1; i<fineSize+2; i++){
 			fine[i][j] = (fine[i][j-1] + fine[i][j+1]) *0.5;
 		}
 	}
-	
-	
  }
  
  void gridprint(double** grid, int gridSize){
