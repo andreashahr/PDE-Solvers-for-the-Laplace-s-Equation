@@ -131,28 +131,10 @@ trivial to cover the same spatial space with a courser grid.
 	int gridSizeH, gridSize2H, gridSize4H, gridSize8H, numIters, i, j, k;
 	double temp, maxdiff;
 	 
-	gridSizeH = (argc > 1)? atoi(argv[1]) + 2 : GRIDSIZE;
-	if(gridSizeH % 2 ){
-		// uneven
-		gridSize2H = gridSizeH * 0.5 + 2;
-	}else{
-		//even
-		gridSize2H = gridSizeH *0.5 + 1;
-	}
-	if(gridSize2H % 2 ){
-		// uneven
-		gridSize4H = gridSize2H * 0.5 + 2;
-	}else{
-		//even
-		gridSize4H = gridSize2H *0.5 + 1;
-	}
-	if(gridSizeH % 2 ){
-		// uneven
-		gridSize8H = gridSize4H * 0.5 + 2;
-	}else{
-		//even
-		gridSize8H = gridSize4H *0.5 + 1;
-	}
+	gridSize8H = (argc > 1)? atoi(argv[1]) : GRIDSIZE;
+	gridSize4H = gridSize8H * 2 + 1;
+	gridSize2H = gridSize4H * 2 + 1;
+	gridSizeH = gridSize2H * 2 + 1;
 	
 	numIters = (argc > 2)? atoi(argv[2]) : NUMITERS;
 	 
@@ -165,88 +147,88 @@ trivial to cover the same spatial space with a courser grid.
 	/*Allocating memory for the grids*/
 	
 	/*malloc the rows*/
-	double **gridH = (double **) malloc(gridSizeH * sizeof(double*));
-	double **newH = (double **) malloc(gridSizeH * sizeof(double*));
+	double **gridH = (double **) malloc((gridSizeH + 2 )* sizeof(double*));
+	double **newH = (double **) malloc((gridSizeH + 2) * sizeof(double*));
 	
-	double **grid2H = (double **) malloc(gridSize2H * sizeof(double*));
-	double **new2H = (double **) malloc(gridSize2H * sizeof(double*));
+	double **grid2H = (double **) malloc((gridSize2H + 2) * sizeof(double*));
+	double **new2H = (double **) malloc((gridSize2H + 2) * sizeof(double*));
 
-	double **grid4H = (double **) malloc(gridSize4H * sizeof(double*));
-	double **new4H = (double **) malloc(gridSize4H * sizeof(double*));
+	double **grid4H = (double **) malloc((gridSize4H + 2) * sizeof(double*));
+	double **new4H = (double **) malloc((gridSize4H + 2) * sizeof(double*));
 	
-	double **grid8H = (double **) malloc(gridSize8H * sizeof(double*));
-	double **new8H = (double **) malloc(gridSize8H * sizeof(double*));
+	double **grid8H = (double **) malloc((gridSize8H + 2 ) * sizeof(double*));
+	double **new8H = (double **) malloc((gridSize8H + 2) * sizeof(double*));
 	
 	
 	/*malloc the columns*/
-	for(i = 0; i < gridSizeH; i++){
-		gridH[i] = (double *) malloc(gridSizeH * sizeof(double));
-		newH[i] = (double *) malloc(gridSizeH * sizeof(double));
+	for(i = 0; i < gridSizeH + 2; i++){
+		gridH[i] = (double *) malloc((gridSizeH + 2) * sizeof(double));
+		newH[i] = (double *) malloc((gridSizeH + 2) * sizeof(double));
 	}
-	for(i = 0; i < gridSize2H; i++){
-		grid2H[i] = (double *) malloc(gridSize2H * sizeof(double));
-		new2H[i] = (double *) malloc(gridSize2H * sizeof(double));
+	for(i = 0; i < gridSize2H + 2; i++){
+		grid2H[i] = (double *) malloc((gridSize2H + 2) * sizeof(double));
+		new2H[i] = (double *) malloc((gridSize2H + 2) * sizeof(double));
 	}
-	for(i = 0; i < gridSize4H; i++){
-		grid4H[i] = (double *) malloc(gridSize4H * sizeof(double));
-		new4H[i] = (double *) malloc(gridSize4H * sizeof(double));
+	for(i = 0; i < gridSize4H + 2; i++){
+		grid4H[i] = (double *) malloc((gridSize4H + 2) * sizeof(double));
+		new4H[i] = (double *) malloc((gridSize4H + 2) * sizeof(double));
 	}
-	for(i = 0; i < gridSize8H; i++){
-		grid8H[i] = (double *) malloc(gridSize8H * sizeof(double));
-		new8H[i] = (double *) malloc(gridSize8H * sizeof(double));
+	for(i = 0; i < gridSize8H + 2; i++){
+		grid8H[i] = (double *) malloc((gridSize8H + 2) * sizeof(double));
+		new8H[i] = (double *) malloc((gridSize8H + 2 ) * sizeof(double));
 	}
 	
 	/*Initiation of gridH boundary */
-	for(i = 0; i < gridSizeH; i++){
+	for(i = 0; i < gridSizeH + 2; i++){
 		gridH[0][i] = 1;				// upper boundary
 		newH[0][i] = 1;
-		gridH[gridSizeH-1][i] = 1;	// lower boundary
-		newH[gridSizeH-1][i] = 1;
+		gridH[gridSizeH+1][i] = 1;	// lower boundary
+		newH[gridSizeH+1][i] = 1;
 		gridH[i][0] = 1; 			// left  boundary
 		newH[i][0] = 1;
-		gridH[i][gridSizeH-1] = 1;	// right boundary
-		newH[i][gridSizeH-1] = 1;
+		gridH[i][gridSizeH+1] = 1;	// right boundary
+		newH[i][gridSizeH+1] = 1;
 	}
 	
 	/*Initiation of grid2H boundary */
-	for(i = 0; i < gridSize2H; i++){
+	for(i = 0; i < gridSize2H + 2; i++){
 		grid2H[0][i] = 1;				// upper boundary
 		new2H[0][i] = 1;
-		grid2H[gridSize2H-1][i] = 1;	// lower boundary
-		new2H[gridSize2H-1][i] = 1;
+		grid2H[gridSize2H+1][i] = 1;	// lower boundary
+		new2H[gridSize2H+1][i] = 1;
 		grid2H[i][0] = 1; 			// left  boundary
 		new2H[i][0] = 1;
-		grid2H[i][gridSize2H-1] = 1;	// right boundary
-		new2H[i][gridSize2H-1] = 1;
+		grid2H[i][gridSize2H+1] = 1;	// right boundary
+		new2H[i][gridSize2H+1] = 1;
 	} 
 	
 	/*Initiation of grid4H boundary */
-	for(i = 0; i < gridSize4H; i++){
+	for(i = 0; i < gridSize4H + 2; i++){
 		grid4H[0][i] = 1;				// upper boundary
 		new4H[0][i] = 1;
-		grid4H[gridSize4H-1][i] = 1;	// lower boundary
-		new4H[gridSize4H-1][i] = 1;
+		grid4H[gridSize4H+1][i] = 1;	// lower boundary
+		new4H[gridSize4H+1][i] = 1;
 		grid4H[i][0] = 1; 			// left  boundary
 		new4H[i][0] = 1;
-		grid4H[i][gridSize4H-1] = 1;	// right boundary
-		new4H[i][gridSize4H-1] = 1;
+		grid4H[i][gridSize4H+1] = 1;	// right boundary
+		new4H[i][gridSize4H+1] = 1;
 	}
 	
 		/*Initiation of grid8H boundary */
-	for(i = 0; i < gridSize8H; i++){
+	for(i = 0; i < gridSize8H + 2; i++){
 		grid8H[0][i] = 1;				// upper boundary
 		new8H[0][i] = 1;
-		grid8H[gridSize8H-1][i] = 1;	// lower boundary
-		new8H[gridSize8H-1][i] = 1;
+		grid8H[gridSize8H+1][i] = 1;	// lower boundary
+		new8H[gridSize8H+1][i] = 1;
 		grid8H[i][0] = 1; 			// left  boundary
 		new8H[i][0] = 1;
-		grid8H[i][gridSize8H-1] = 1;	// right boundary
-		new8H[i][gridSize8H-1] = 1;
+		grid8H[i][gridSize8H+1] = 1;	// right boundary
+		new8H[i][gridSize8H+1] = 1;
 	}
 	
 	/*Instantiation of gridH */
-	for(i = 1; i < gridSizeH-1; i++){
-		for(j = 1; j < gridSizeH-1; j++){
+	for(i = 1; i < gridSizeH+1; i++){
+		for(j = 1; j < gridSizeH+1; j++){
 			gridH[i][j] = 0;
 		}	
 	}
@@ -589,7 +571,7 @@ trivial to cover the same spatial space with a courser grid.
 		Uses the interpolation matrix
 		
 		1/4		1/2		1/4
-		
+		i
 		1/2		1		1/2
 		
 		1/4		1/2		1/4
@@ -598,57 +580,45 @@ trivial to cover the same spatial space with a courser grid.
 	int i, j, n, m;
 	
 	// The centre part (the 1) of the interpolation matrix
-	for(i = 1; i < fineSize-1; i = i+2){
-		// adapting to the coarser matrix positions
-		n = i * 0.5 + 1;	
+	for(i = 1; i < coarseSize+2; i = i++){
+		// adapting to the finer matrix positions
+		n = i * 2;	
 		
-		for(j = 1; j < fineSize-1; j =j+2){
+		for(j = 1; j < coarseSize+2; j =j+1){
 			// adapting to the coarser matrix positions
-			m = j * 0.5 + 1;
+			m = j * 2;
 			
-			fine[i][j] = coarse[n][m];
+			fine[n][m] = coarse[i][j];
 		}	
 	}
 	
 	/*The surrounding elements in the matrix */
 	
-	// row counter, handles two rows at a time
-	for(i = 1; i <fineSize-2; i = i + 2){
-	
-		//first calculation done here to even out the uneven matrix
+	// initiliazise columns that has coresponding coarse values
+	for(j = 2; j <fineSize+2; j = j + 2){
 		
-		/* 1/2 of two corresponding coarse points*/
-		fine[i+1][1] = (fine[i][1] + fine[i+2][1]) * 0.5;
+		for(i =1; i <fineSize+2; i = i+2){
+			fine[i][j] = (fine[i-1][j] + fine[i+1][j]) * 0.5;
+		}
+	}
+	// initialize the rest of the columns
+	for(j =1; j<fineSize+2; j = j+2){
 		
-		for(j = 2; j < fineSize-1; j = j + 2){
-
-			// 1/2 of two corresponding coarse points
-			fine[i][j] = (fine[i][j-1] + fine[i][j+1]) * 0.5;
-			
-			//1/4 of four corresponding coarse points
-			fine[i+1][j] = (fine[i][j-1] + fine[i][j+1] +
-							fine[i+2][j-1] + fine[i+2][j+1]) * 0.25;
-			
-			// 1/2 of two corresponding coarse points
-			
-			fine[i+1][j+1] = (fine[i][j+1] + fine[i+2][j+1]) * 0.5;
+		for(i =1; i<fineSize+2; i++){
+			fine[i][j] = (fine[i][j-1] + fine[i][j+1]) *0.5;
 		}
 	}
 	
-	// the last row
-	for(j = 2; j < fineSize-2; j = j +2){
-		fine[fineSize-2][j] = (fine[fineSize-2][j-1] + 
-	   						   fine[fineSize-2][j+1]) * 0.5;
-		}
+	
  }
  
  void gridprint(double** grid, int gridSize){
  
 	int i, j;
 	
-	for(i = 0; i < gridSize; i++){
+	for(i = 0; i < gridSize+2; i++){
 		printf("\n");
-		for(j = 0; j < gridSize; j++){
+		for(j = 0; j < gridSize+2; j++){
 			printf("%f  ", grid[i][j]);
 		}
 	}
