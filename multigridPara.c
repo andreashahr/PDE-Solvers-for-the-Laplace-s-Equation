@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
   gridprint(grid4, gridSize4); // print grid to filedata.out
 
   /* computation of the maximum difference */
-  maxdiff = 0;
+  /*maxdiff = 0;
   for(int i = 1; i < gridSize4-1; i++) {
     for(int j = 1; j < gridSize4-1; j++) {
       temp = grid4[i][j] - new4[i][j];
@@ -184,9 +184,10 @@ int main(int argc, char *argv[]) {
       if(temp > maxdiff) maxdiff = temp;
     }
   }
+  printf("Maximum difference: %f\n", maxdiff);*/
 
-  printf("Maximum difference: %f\n", maxdiff);
-  printf ("Jacobi iterations runtime: %f seconds\n", timestamp);
+  printf("Maximum final error: %f\n", 1.0-grid4[(gridSize4+1)/2][(gridSize4+1)/2]);
+  printf("Jacobi iterations runtime: %f seconds\n", timestamp);
 
   exit(0);
 }
